@@ -6,4 +6,5 @@ scalaVersion := "3.4.2"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19"
 libraryDependencies += "org.scalatestplus" %% "mockito-5-12" % "3.2.19.0"
-libraryDependencies += "jakarta.activation" % "jakarta.activation-api" % "2.1.3"
+libraryDependencies += "org.apache.tika" % "tika-core" % "3.0.0"
+libraryDependencies += "org.slf4j" % "slf4j-nop" % "2.0.16"

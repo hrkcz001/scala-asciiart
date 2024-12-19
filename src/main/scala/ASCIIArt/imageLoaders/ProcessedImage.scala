@@ -2,6 +2,8 @@ package ASCIIArt.imageLoaders
 
 import ASCIIArt.Pixel
 
+import scala.util.Try
+
 trait ProcessedImage {
-  def getPixels: List[List[Pixel]]
+  def getPixels: Try[List[List[Pixel]]]
 }

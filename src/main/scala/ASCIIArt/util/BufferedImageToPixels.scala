@@ -10,7 +10,11 @@ def bufferedImageToPixels(image: BufferedImage): List[List[Pixel]] = {
   } yield for {
     x <- 0 until image.getWidth
   } yield {
+    //transparent means white
     val rgb = image.getRGB(x, y)
-    Pixel((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF).get
+    if ((rgb >> 24) == 0) 
+      Pixel(255, 255, 255).get
+    else
+      Pixel((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF).get
   }
 }.toList.map(_.toList)

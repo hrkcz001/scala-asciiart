@@ -1,5 +1,9 @@
 package ASCIIArt
 
+import ASCIIArt.GrayscaleImage.{invert, rotate, scale}
+
+import scala.util.{Failure, Success, Try}
+
 case class Filter(name: String, arguments: List[String])
 
 object Filter {
@@ -10,6 +14,16 @@ object Filter {
       case "--rotate" => Some(1)
       case "--scale" => Some(1)
       case _ => None
+    }
+  }
+  
+  def applyFilter(grayscaleImage: GrayscaleImage, filter: Filter): Try[GrayscaleImage] = {
+    filter.name match {
+      case "--invert" => Success(invert(grayscaleImage))
+      case "--rotate" => try{ Success(rotate(grayscaleImage, filter.arguments.head.trim.toInt)) } 
+                         catch { case _: NumberFormatException => Failure(new IllegalArgumentException("Rotation must be an integer")) }
+      case "--scale" => try{ Success(scale(grayscaleImage, filter.arguments.head.trim.toFloat)) }
+                         catch { case _: NumberFormatException => Failure(new IllegalArgumentException("Scale must be a float")) }
     }
   }
 }
