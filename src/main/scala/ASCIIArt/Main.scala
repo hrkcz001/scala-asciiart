@@ -34,6 +34,5 @@ case class ParsedArgs( processedImage: Option[ProcessedImage]
   ).recover({
     case e: IllegalArgumentException => System.err.println(e.getMessage)
     case e: Throwable => System.err.println("An error occurred")
-                         e.printStackTrace()
   })
 }
