@@ -13,8 +13,8 @@ class JpgImageLoader(path: String) extends LocalImageLoader(path) {
   } else {
     Success(true)
   }
-
-  private val image = if (wasFound.isSuccess) ImageIO.read(file) else null
+  
+  private val image = if (isJpeg.isSuccess) ImageIO.read(file) else null
   private val pixels = if (image != null) bufferedImageToPixels(image) else List[List[Pixel]]()
 
   override def getPixels: Try[List[List[Pixel]]] = wasFound.flatMap(_ => isJpeg.map(_ => pixels))
