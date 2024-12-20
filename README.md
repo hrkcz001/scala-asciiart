@@ -10,7 +10,7 @@ supported arguments are:
 - --rotate <angle> (will rotate image <angle> / 90 times, though any angle is supported)
 - --scale <scale> (any float or integer, e.g. 0.0625 is image 16 times smaller)
 - --invert (inverts the image)
-- --table <name> (name of the table to use, "linear" and "nonlinear" are supported, only one table can be specified)
+- --table <name> (name of the table to use, "linear", "extended" and "nonlinear" are supported, only one table can be specified)
 - --custom-table <table> (custom table to use, string starting with character representing black color, will be linear if possible, e.g. "#Xx. ")
 
 several filters can be applied in one run, e.g. --rotate 90 --rotate 90 --rotate 90 --rotate 90 will rotate the image 360 degrees

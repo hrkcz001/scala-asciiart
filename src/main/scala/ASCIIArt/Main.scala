@@ -11,7 +11,7 @@ import java.io.OutputStream
 case class ParsedArgs( processedImage: Option[ProcessedImage]
                      , output: List[OutputStream]
                      , filters: List[Filter]
-                     , table: Option[String])
+                     , table: Option[Int => Char])
 
 @main def main(args: String*): Unit = {
   InputParser.parse(args.toArray).flatMap(parsedArgs =>
@@ -25,9 +25,9 @@ case class ParsedArgs( processedImage: Option[ProcessedImage]
       processedImage.getPixels.flatMap(pixels =>
           val grayscalePixels = pixels.map(_.map(pixel => grayscale(pixel)))
           parsedArgs.filters.foldLeft(GrayscaleImage(grayscalePixels))
-            ((image, filter) => image.flatMap(i => applyFilter(i, filter)))
+            ((image, filter) => image.flatMap(applyFilter(_, filter)))
             .map(finalImage =>
-              convertToASCII(process(finalImage), linearTable(table))
+              convertToASCII(process(finalImage), table)
                 .foreach(line => output.foreach(_.write((line + System.lineSeparator()).getBytes)))
             )
       )

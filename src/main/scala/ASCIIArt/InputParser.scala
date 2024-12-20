@@ -1,6 +1,6 @@
 package ASCIIArt
 
-import ASCIIArt.ASCIIConverter.tableByName
+import ASCIIArt.ASCIIConverter.{linearTable, tableByName}
 import ASCIIArt.imageLoaders.{GeneratedImage, JpgImageLoader, PngImageLoader}
 
 import java.io.{File, FileOutputStream}
@@ -16,7 +16,9 @@ object InputParser {
           if (settings.get.processedImage.isDefined){
             settings = Failure(new IllegalArgumentException("Only one image can be provided"))
           } else
-          if (i + 1 < args.length) {
+          if (i + 1 >= args.length) {
+            settings = Failure(new IllegalArgumentException("No image file specified"))
+          } else {
             val image = args(i + 1).trim
             val extension = image.split('.').last
             settings = extension match {
@@ -25,8 +27,6 @@ object InputParser {
               case _ => Failure(new IllegalArgumentException(s"Unsupported image format: $extension"))
             }
             i += 1
-          } else {
-            settings = Failure(new IllegalArgumentException("No image file specified"))
           }
         case "--image-generated" =>
           if (settings.get.processedImage.isDefined){
@@ -60,26 +60,26 @@ object InputParser {
             if (settings.get.table.isDefined){
                 settings = Failure(new IllegalArgumentException("Only one table can be provided"))
             } else
-            if (i + 1 < args.length) {
-                val name = args(i + 1).trim
-                tableByName(name) match {
-                    case Some(table) => settings = settings.map(s => s.copy(table = Some(table)))
-                    case None => settings = Failure(new IllegalArgumentException(s"Table $name not found"))
-                }
-                i += 1
+            if (i + 1 >= args.length) {
+              settings = Failure(new IllegalArgumentException("No table name specified"))
             } else {
-                settings = Failure(new IllegalArgumentException("No table name specified"))
+              val name = args(i + 1).trim
+              tableByName(name) match {
+                case Some(table) => settings = settings.map(s => s.copy(table = Some(table)))
+                case None => settings = Failure(new IllegalArgumentException(s"Table $name not found"))
+              }
+              i += 1
             }
         case "--custom-table" =>
             if (settings.get.table.isDefined){
                 settings = Failure(new IllegalArgumentException("Only one table can be provided"))
             } else
-            if (i + 1 < args.length) {
-                val table = args(i + 1)
-                settings = settings.map(s => s.copy(table = Some(table)))
-                i += 1
+            if (i + 1 >= args.length) {
+              settings = Failure(new IllegalArgumentException("No table specified"))
             } else {
-                settings = Failure(new IllegalArgumentException("No table specified"))
+              val table = args(i + 1)
+              settings = settings.map(s => s.copy(table = Some(linearTable(table))))
+              i += 1
             }
         case _ =>
           Filter.argumentsRequired(args(i)) match {
@@ -89,7 +89,7 @@ object InputParser {
                 settings = settings.map(s => s.copy(filters = s.filters :+ Filter(args(i), arguments)))
                 i += argumentsRequired
               } else {
-                settings = Failure(new IllegalArgumentException(s"Expected $argumentsRequired arguments for filter ${args(i)}"))
+                settings = Failure(new IllegalArgumentException(s"Expected $argumentsRequired argument(s) for filter ${args(i)}"))
               }
             case None =>
               settings = Failure(new IllegalArgumentException(s"Unknown argument: ${args(i)}"))
