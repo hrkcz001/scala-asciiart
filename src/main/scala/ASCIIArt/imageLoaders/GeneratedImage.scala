@@ -11,7 +11,7 @@ val MAX_RATIO = 2.0f
 
 class GeneratedImage( minHeight: Int = MIN_HEIGHT
                     , maxHeight: Int = MAX_HEIGHT
-                    , maxRatio: Float = MAX_RATIO) extends ProcessedImage {
+                    , maxRatio: Float = MAX_RATIO) extends ImageLoader {
   
   private val random = new Random()
   

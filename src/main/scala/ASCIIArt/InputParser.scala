@@ -1,103 +1,85 @@
 package ASCIIArt
 
-import ASCIIArt.ASCIIConverter.{linearTable, tableByName}
-import ASCIIArt.imageLoaders.{GeneratedImage, JpgImageLoader, PngImageLoader}
-
-import java.io.{File, FileOutputStream}
 import scala.util.{Failure, Success, Try}
 
+case class ParsedArgs( processedImage: Option[Option[String]] = None
+                     , output: List[String] = List()
+                     , console: Boolean = false
+                     , filters: List[(String, List[String])] = List()
+                     , table: Option[Either[String, String]] = None
+                     )
+
+// Parses input arguments semantically
 object InputParser {
   def parse(args: Array[String]): Try[ParsedArgs] = {
-    var settings: Try[ParsedArgs] = Success(ParsedArgs(processedImage = None, output = List(), filters = List(), table = None))
+    var parsed: Try[ParsedArgs] = Success(ParsedArgs())
     var i = 0
-    while (args != null && i < args.length && settings.isSuccess) {
+    while (args != null && i < args.length && parsed.isSuccess) {
       args(i) match {
         case "--image" =>
-          if (settings.get.processedImage.isDefined){
-            settings = Failure(new IllegalArgumentException("Only one image can be provided"))
-          } else
-          if (i + 1 >= args.length) {
-            settings = Failure(new IllegalArgumentException("No image file specified"))
-          } else {
-            val image = args(i + 1).trim
-            val extension = image.split('.').last
-            settings = extension match {
-              case "jpg" | "jpeg" => settings.map(s => s.copy(processedImage = Some(new JpgImageLoader(image))))
-              case "png" => settings.map(s => s.copy(processedImage = Some(new PngImageLoader(image))))
-              case _ => Failure(new IllegalArgumentException(s"Unsupported image format: $extension"))
-            }
+          if (parsed.get.processedImage.isDefined)
+            parsed = Failure(new IllegalArgumentException("Only one image can be provided"))
+          else
+          if (i + 1 >= args.length || args(i + 1).startsWith("--"))
+            parsed = Failure(new IllegalArgumentException("No image file specified"))
+          else
             i += 1
-          }
+            parsed = parsed.map(s => s.copy(processedImage = Some(Some(args(i)))))
         case "--image-generated" =>
-          if (settings.get.processedImage.isDefined){
-            settings = Failure(new IllegalArgumentException("Only one image can be provided"))
-          } else
-          settings = settings.map(s => s.copy(processedImage = Some(new GeneratedImage())))
+          if (parsed.get.processedImage.isDefined)
+            parsed = Failure(new IllegalArgumentException("Only one image can be provided"))
+          else
+            parsed = parsed.map(s => s.copy(processedImage = Some(None)))
         case "--output-console" =>
-          if (settings.get.output.isEmpty || !settings.get.output.contains(Console.out)){
-            settings = settings.map(s => s.copy(output = s.output :+ Console.out))
-          }
-          else {
-            settings = Failure(new IllegalArgumentException("Only one console output can be requested"))
-          }
+          if (!parsed.get.console)
+            parsed = parsed.map(s => s.copy(console = true))
+          else
+            parsed = Failure(new IllegalArgumentException("Only one console output can be requested"))
         case "--output-file" =>
-          if (i + 1 < args.length) {
-            val path = args(i + 1).trim
-            val file = new File(path)
-            if (!file.exists) {
-              file.createNewFile()
-            }
-            if (file.canWrite) {
-              settings = settings.map(s => s.copy(output = s.output :+ new FileOutputStream(file)))
-            } else {
-              settings = Failure(new IllegalArgumentException(s"Cannot write to file $path"))
-            }
+          if (i + 1 >= args.length || args(i + 1).startsWith("--"))
+            parsed = Failure(new IllegalArgumentException("No output file specified"))
+          else
             i += 1
-          } else {
-            settings = Failure(new IllegalArgumentException("No output file specified"))
-          }
+            if (parsed.get.output.contains(args(i)))
+              parsed = Failure(new IllegalArgumentException("Same output file specified multiple times"))
+            else
+              parsed = parsed.map(s => s.copy(output = s.output :+ args(i)))
         case "--table" =>
-            if (settings.get.table.isDefined){
-                settings = Failure(new IllegalArgumentException("Only one table can be provided"))
-            } else
-            if (i + 1 >= args.length) {
-              settings = Failure(new IllegalArgumentException("No table name specified"))
-            } else {
-              val name = args(i + 1).trim
-              tableByName(name) match {
-                case Some(table) => settings = settings.map(s => s.copy(table = Some(table)))
-                case None => settings = Failure(new IllegalArgumentException(s"Table $name not found"))
-              }
+            if (parsed.get.table.isDefined)
+                parsed = Failure(new IllegalArgumentException("Only one table can be provided"))
+            else
+            if (i + 1 >= args.length || args(i + 1).startsWith("--"))
+              parsed = Failure(new IllegalArgumentException("No table name specified"))
+            else
               i += 1
-            }
+              parsed = parsed.map(s => s.copy(table = Some(Left(args(i)))))
         case "--custom-table" =>
-            if (settings.get.table.isDefined){
-                settings = Failure(new IllegalArgumentException("Only one table can be provided"))
-            } else
-            if (i + 1 >= args.length) {
-              settings = Failure(new IllegalArgumentException("No table specified"))
-            } else {
-              val table = args(i + 1)
-              settings = settings.map(s => s.copy(table = Some(linearTable(table))))
+            if (parsed.get.table.isDefined)
+                parsed = Failure(new IllegalArgumentException("Only one table can be provided"))
+            else
+            if (i + 1 >= args.length)
+              parsed = Failure(new IllegalArgumentException("No custom table specified"))
+            else
               i += 1
-            }
+              if (args(i).equals(""))
+                parsed = Failure(new IllegalArgumentException("Custom table cannot be empty"))
+              else
+                parsed = parsed.map(s => s.copy(table = Some(Right(args(i)))))
         case _ =>
-          Filter.argumentsRequired(args(i)) match {
-            case Some(argumentsRequired) =>
-              val arguments = args.slice(i + 1, i + 1 + argumentsRequired).toList
-              if (arguments.length == argumentsRequired) {
-                settings = settings.map(s => s.copy(filters = s.filters :+ Filter(args(i), arguments)))
-                i += argumentsRequired
-              } else {
-                settings = Failure(new IllegalArgumentException(s"Expected $argumentsRequired argument(s) for filter ${args(i)}"))
-              }
-            case None =>
-              settings = Failure(new IllegalArgumentException(s"Unknown argument: ${args(i)}"))
-          }
+            if (args(i).startsWith("--"))
+                val filter = args(i).drop(2)
+                var arguments: List[String] = List()
+                while (i + 1 < args.length && !args(i + 1).startsWith("--")) {
+                    i += 1
+                    arguments :+= args(i)
+                }
+                parsed = parsed.map(s => s.copy(filters = s.filters :+ (filter, arguments)))
+            else
+                parsed = Failure(new IllegalArgumentException(s"Unknown argument ${args(i)}"))
       }
       i += 1
     }
-    settings
+    parsed
   }
 }
 
