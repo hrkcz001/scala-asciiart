@@ -1,6 +1,6 @@
 # BI-OOP: ASCII Art 
 
-author: morozan1
+author: hrkcz001
 
 supported arguments are:
 - --image <path to the image file> (only one image can be specified, jpeg and png are supported)
@@ -26,17 +26,3 @@ bird.jpg and bear.png are provided as example images
 
 example cli input:
 --image bird.jpg --output-file result.txt --output-console --scale 0.0625 --table extended
-
-# ASCII Art
-
-[![pipeline status](https://gitlab.fit.cvut.cz/BI-OOP/B241/asciiart/badges/master/pipeline.svg)](https://gitlab.fit.cvut.cz/BI-OOP/B241/asciiart)
-
-The idea of this project is to load images, translate them into ASCII ART images, optionally apply filters, and save them. (https://courses.fit.cvut.cz/BI-OOP/projects/ASCII-art.html)
-
-## How to do it
-
-1. **Make your repository private**
-2. **Read [the instructions](https://courses.fit.cvut.cz/BI-OOP/projects/ASCII-art.html)**
-3. Play [lofi hip hop radio](https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUJcmljayByb2xs)
-4. [???](https://www.youtube.com/watch?v=dQw4w9WgXcQ&pp=ygUJcmljayByb2xs)
-5. Profit
